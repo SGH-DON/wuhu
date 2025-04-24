@@ -1,0 +1,43 @@
+import cv2
+import numpy as np
+
+# Load the input image in grayscale
+a1 = cv2.imread('/home/computer/Desktop/box.png', 0)
+
+# Define horizontal and vertical Sobel masks
+hor_mask = np.array([[1, 2, 1], 
+                     [0, 0, 0], 
+                     [-1, -2, -1]])
+
+ver_mask = np.array([[-1, 0, 1], 
+                     [-2, 0, 2], 
+                     [-1, 0, 1]])
+
+# Create output arrays with the same shape as input
+hor_output = np.zeros_like(a1)
+ver_output = np.zeros_like(a1)
+
+# Get shape of image
+r, c = a1.shape
+
+# Convolution operation for horizontal edges
+for i in range(1, r - 1):
+    for j in range(1, c - 1):
+        hor_output[i, j] = abs(np.sum(hor_mask * a1[i - 1:i + 2, j - 1:j + 2]))
+
+# Convolution operation for vertical edges
+for i in range(1, r - 1):
+    for j in range(1, c - 1):
+        ver_output[i, j] = abs(np.sum(ver_mask * a1[i - 1:i + 2, j - 1:j + 2]))
+
+# Combine both edge images (optional)
+sobel_output = cv2.bitwise_or(hor_output, ver_output)
+
+# Show images
+cv2.imshow("INPUT IMAGE", a1)
+cv2.imshow("Horizontal Edges", hor_output)
+cv2.imshow("Vertical Edges", ver_output)
+cv2.imshow("SOBEL Image", sobel_output)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
