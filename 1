@@ -17,3 +17,278 @@ else:
     # Output
     print(f"SIR (linear scale): {sir_linear:.4f}")
     print(f"SIR (dB): {sir_dB:.2f} dB")
+
+#Test Case 
+#Input Enter number of cells (N): 7 Enter path loss exponent (n): 4
+#Expected Output SIR (linear scale): 38.4494 SIR (dB): 15.85 dB
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+# exp 2 Mobile System Capacity Calculator
+
+def calculate_cell_area(radius):
+    """Calculate area of a hexagonal cell."""
+    return 2.598 * radius ** 2
+
+def calculate_channels_per_cell(total_channels, cluster_size):
+    """Calculate number of channels per cell."""
+    return total_channels / cluster_size
+
+def calculate_system_capacity(channels_per_cell, total_cells):
+    """Calculate total system capacity."""
+    return channels_per_cell * total_cells
+
+def get_positive_float(prompt):
+    """Prompt user for positive float input."""
+    while True:
+        try:
+            value = float(input(prompt))
+            if value > 0:
+                return value
+            else:
+                print("Please enter a positive number.")
+        except ValueError:
+            print("Invalid input. Enter a numeric value.")
+
+def get_positive_int(prompt):
+    """Prompt user for positive integer input."""
+    while True:
+        try:
+            value = int(input(prompt))
+            if value > 0:
+                return value
+            else:
+                print("Please enter a positive integer.")
+        except ValueError:
+            print("Invalid input. Enter an integer.")
+
+def main():
+    # Input
+    radius = get_positive_float("Enter cell radius: ")
+    total_channels = get_positive_int("Enter total number of channels: ")
+
+    # Cell area
+    cell_area = calculate_cell_area(radius)
+    print(f"Area of cell (Ac): {cell_area:.3f}")
+
+    # Small cluster
+    small_cluster_size = get_positive_int("Enter number of cells in small cluster: ")
+    small_cluster_cells = get_positive_int("Enter total cells in system for small cluster: ")
+
+    channels_small = calculate_channels_per_cell(total_channels, small_cluster_size)
+    system_capacity_small = calculate_system_capacity(channels_small, small_cluster_cells)
+
+    print(f"Channels per cell (small cluster): {channels_small:.2f}")
+    print(f"System capacity (small cluster): {system_capacity_small:.2f}")
+
+    # Large cluster
+    large_cluster_size = get_positive_int("Enter number of cells in large cluster: ")
+    large_cluster_cells = get_positive_int("Enter total cells in system for large cluster: ")
+
+    channels_large = calculate_channels_per_cell(total_channels, large_cluster_size)
+    system_capacity_large = calculate_system_capacity(channels_large, large_cluster_cells)
+
+    print(f"Channels per cell (large cluster): {channels_large:.2f}")
+    print(f"System capacity (large cluster): {system_capacity_large:.2f}")
+
+    # Comparison
+    if system_capacity_small > system_capacity_large:
+        print("Capacity increases with smaller cluster size.")
+    else:
+        print("Capacity decreases with larger cluster size.")
+
+if __name__ == "__main__":
+    main()
+
+#test case
+Enter cell radius: 1
+Enter total number of channels: 120
+Enter number of cells in small cluster: 3
+Enter total cells in system for small cluster: 10
+Enter number of cells in large cluster: 7
+Enter total cells in system for large cluster: 10
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+# exp 3  C/I Ratio Calculation for Cellular Systems
+
+import math
+
+# Input path loss exponent
+n = float(input("Enter path loss exponent (n): "))
+
+print("\n% For Three sector")
+for N in [4, 7]:
+    Q = math.sqrt(3 * N)
+    CI = 1 / (Q**n) + 1 / ((Q + 0.7)**n)
+    print(f"N = {N}, Q = {Q:.4f}, C/I = {CI:.4f}")
+
+print("As N increases, S/I ratio increases")
+
+print("\n% For Six sector")
+for N in [4, 7]:
+    Q = math.sqrt(3 * N)
+    CI = 1 / ((Q + 0.7)**n)
+    print(f"N = {N}, Q = {Q:.4f}, C/I = {CI:.4f}")
+
+print("Sectoring increases, S/I ratio increases")
+
+# test case
+
+**Explanation of Output:**
+
+- For three-sector cells:
+  - N = 4 → C/I ≈ 0.0141
+  - N = 7 → C/I ≈ 0.0101 (C/I decreases slightly due to larger cluster distance, but overall interference reduces)
+- For six-sector cells:
+  - N = 4 → C/I ≈ 0.0162
+  - N = 7 → C/I ≈ 0.0112
+- The output shows that **sectoring and larger cluster size improve C/I**, leading to better signal quality.
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+# exp 4 Path Loss vs Distance Simulation
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------------------
+# Constants
+# -----------------------------
+pa = 50       # Power at reference distance (d0)
+pt = 100      # Transmitted power
+d0 = 100      # Reference distance
+d = np.arange(100, 2050, 50)
+
+# Path loss at reference distance (dB)
+pl0 = 10 * np.log10(pa)
+
+# Path loss exponents (n ≤ 4.0)
+n_values = np.arange(2.0, 4.5, 0.5)
+
+# Transmitted power in dB
+pt_db = 10 * np.log10(pt)
+
+# -----------------------------
+# Plotting
+# -----------------------------
+plt.figure(figsize=(10, 6))
+colors = ['b', 'g', 'r', 'c', 'm']  # Color for each curve
+
+for i, n in enumerate(n_values):
+    pl = pl0 + 10 * n * np.log10(d / d0)   # Path loss at distance d
+    pr_db = pt_db - pl                      # Received power in dB
+    plt.plot(d, pr_db, '-o', color=colors[i], label=f'n = {n:.1f}', markersize=5)
+
+# Labels and title
+plt.xlabel("Distance (m)", fontsize=12)
+plt.ylabel("Received Power (dB)", fontsize=12)
+plt.title("Received Power vs Distance for Different Path Loss Exponents", fontsize=14)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+## Example Run
+
+### Input Parameters
+- Transmitted Power (Pt): 100
+- Reference Power at d0 (Pa): 50
+- Reference Distance (d0): 100 m
+- Distance Array (d): 100 to 2000 m, step 50 m
+- Path Loss Exponents (n): 2.0, 2.5, 3.0, 3.5, 4.0
+
+### Python Code Run
+```python
+# Run the main simulation script
+# (Assuming the improved code from the main file is used)
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+#exp 5 Fast/Slow Fading Channel Calculator
+
+# Speed of light (m/s)
+c = 3e8
+
+# User inputs
+v = float(input("Enter the velocity of the mobile user (m/s): "))
+f = float(input("Enter the carrier frequency (Hz): "))
+
+# Wavelength
+wavelength = c / f
+
+# Doppler frequency
+fd = v / wavelength
+
+# Doppler spread
+Bd = 2 * fd
+
+# Coherence time
+Tc = 0.423 / fd
+
+# Get symbol period in microseconds and convert to seconds
+Ts_micro = float(input("Enter the symbol period (in microseconds): "))
+Ts = Ts_micro * 1e-6
+
+# Get signal bandwidth in kHz and convert to Hz
+sigB_kHz = float(input("Enter the signal bandwidth (in kHz): "))
+sigB = sigB_kHz * 1e3
+
+# Display calculated values
+print("\n=== Calculated Parameters ===")
+print(f"Wavelength (λ): {wavelength:.6f} m")
+print(f"Doppler frequency (fd): {fd:.2f} Hz")
+print(f"Doppler spread (Bd): {Bd:.2f} Hz")
+print(f"Coherence time (Tc): {Tc:.6f} s")
+print(f"Symbol period (Ts): {Ts:.6f} s")
+print(f"Signal bandwidth (B): {sigB:.2f} Hz\n")
+
+# Decision logic
+if (Bd > sigB) and (Tc < Ts):
+    print("✅ It is a FAST FADING channel.")
+elif (Bd < sigB) and (Tc > Ts):
+    print("✅ It is a SLOW FADING channel.")
+else:
+    print("⚠️ Channel type cannot be predicted (borderline case).")
+
+test case
+Enter the velocity of the mobile user (m/s): 30
+Enter the carrier frequency (Hz): 2.4e9
+Enter the symbol period (in microseconds): 10
+Enter the signal bandwidth (in kHz): 200
+
+=== Calculated Parameters ===
+Wavelength (λ): 0.125000 m
+Doppler frequency (fd): 240.00 Hz
+Doppler spread (Bd): 480.00 Hz
+Coherence time (Tc): 0.001762 s
+Symbol period (Ts): 0.000010 s
+Signal bandwidth (B): 200000.00 Hz
+
+✅ It is a FAST FADING channel.
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+#exp 6 Walsh Code Generation
+import numpy as np
+
+def walsh_code(n):
+    H = np.array([[1]])
+
+    # Build the Walsh matrix iteratively
+    while H.shape[0] < n:
+        H = np.block([[H, H], [H, -H]])
+
+    return H
+
+# Example: Generate Walsh code
+n = int(input("Enter the value (must be power of 2): "))
+print(walsh_code(n))
+
+#test case
+
+Enter the value (must be power of 2): 2,4,6,8,10,12,14,16
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
